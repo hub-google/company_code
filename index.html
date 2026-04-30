@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>職域代碼管理系統</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#4f46e5">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1>職域代碼管理系統</h1>
+                    <p>請輸入您的業務員代碼與密碼</p>
+                </div>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="username">業務員代碼</label>
+                        <input type="text" id="username" placeholder="請輸入 8 碼代碼" maxlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">登入密碼</label>
+                        <input type="password" id="password" placeholder="生日後 4 碼 (MMDD)" maxlength="4">
+                    </div>
+                    <button id="loginBtn" class="btn-primary">登入系統</button>
+                    <div id="loginError" class="error-msg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="page">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">職域代碼管理</div>
+                <div class="nav-user-info">
+                    <span id="displayUserId">ID: --------</span>
+                    <button id="logoutBtn" class="btn-text">登出</button>
+                </div>
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="inquiry">職域代碼查詢</button>
+                <button class="nav-tab" data-tab="backfill">職域代碼補填</button>
+                <button class="nav-tab" data-tab="history">補填紀錄查詢</button>
+            </div>
+        </nav>
+
+        <main class="content-container">
+            <!-- Inquiry Tab -->
+            <section id="inquiryTab" class="tab-content active">
+                <div class="custom-filter-bar">
+                    <input type="text" id="inquirySearch" placeholder="搜尋類別、名稱或代碼..." style="flex:3;">
+                    <select id="categoryFilter" style="flex:1;">
+                        <option value="">類別</option>
+                    </select>
+                </div>
+                
+                <div class="custom-list-header">
+                    <div class="col-kind-fixed">類別</div>
+                    <div class="col-name-fixed-inq">職域名稱</div>
+                    <div class="col-code-fixed">職域代碼</div>
+                </div>
+
+                <div id="inquiryList">
+                    <!-- Inquiry items will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Backfill Tab -->
+            <section id="backfillTab" class="tab-content">
+                <div class="card backfill-form-card">
+                    <h2>新增職域代碼補填</h2>
+                    <div id="backfillItemsContainer">
+                        <!-- Dynamic items will be added here -->
+                    </div>
+                    <button id="addMoreBtn" class="btn-secondary">+ 補填下一筆</button>
+                    <div class="form-actions">
+                        <button id="submitBtn" class="btn-primary">確認送出</button>
+                    </div>
+                    <div id="submitMsg" class="submit-msg"></div>
+                </div>
+            </section>
+
+            <!-- History Tab -->
+            <section id="historyTab" class="tab-content">
+                <div class="custom-list-header">
+                    <div class="col-no-fixed">保單號碼</div>
+                    <div class="col-kind-small">類別</div>
+                    <div class="col-name-fixed-his">職域名稱</div>
+                    <div class="col-time-fixed">補填時間</div>
+                </div>
+                <div id="historyList"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- PWA Install Prompt -->
+    <div id="installBanner" class="install-banner">
+        <span>將系統安裝至桌面/主畫面</span>
+        <button id="installBtn" class="btn-small">安裝</button>
+        <button id="closeInstallBtn" class="btn-icon">×</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "職域代碼管理系統",
+  "short_name": "職域管理",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1063/1063376.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
