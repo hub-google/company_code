@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         showPage('login');
     }
-    
+
     setupTabSwitching();
     setupInquiryFilters();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
@@ -39,15 +39,15 @@ function setupTabSwitching() {
             const tabId = tab.dataset.tab;
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
+
             tab.classList.add('active');
             document.getElementById(`${tabId}Tab`).classList.add('active');
-            
+
             if (tabId === 'history') refreshHistory();
             if (tabId === 'backfill') initBackfillForm();
         });
     });
-    
+
     document.getElementById('logoutBtn').addEventListener('click', () => {
         localStorage.clear();
         location.reload();
@@ -59,11 +59,11 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     const user = document.getElementById('username').value.trim();
     const key = document.getElementById('password').value.trim();
     if (!user || !key) return alert('請輸入帳號密碼');
-    
+
     const btn = document.getElementById('loginBtn');
     btn.disabled = true;
     btn.textContent = '登入中...';
-    
+
     try {
         const res = await fetch(`${API_URL}?action=login&user=${user}&key=${key}`);
         const data = await res.json();
@@ -86,7 +86,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 async function refreshDashboardData() {
     const list = document.getElementById('inquiryList');
     list.innerHTML = '<div style="padding:20px; text-align:center; color:#6b7280;">載入中...</div>';
-    
+
     try {
         const res = await fetch(`${API_URL}?action=getDashboardData&user=${currentUser}`);
         const data = await res.json();
@@ -121,7 +121,7 @@ function renderInquiryList(list) {
 function populateCategories(categories) {
     const select = document.getElementById('categoryFilter');
     const cur = select.value;
-    select.innerHTML = '<option value="">類別</option>' + 
+    select.innerHTML = '<option value="">類別</option>' +
         categories.map(c => `<option value="${c}">${c}</option>`).join('');
     select.value = cur;
 }
@@ -129,11 +129,25 @@ function populateCategories(categories) {
 function setupInquiryFilters() {
     const search = document.getElementById('inquirySearch');
     const filter = document.getElementById('categoryFilter');
+    if (!search || !filter) return;
+
     const apply = () => {
         const q = search.value.toLowerCase().trim();
         const cat = filter.value;
+
+        // 確保有資料，若 cachedData 為空則從 localStorage 重新讀取
+        if (!cachedData || !cachedData.inquiryList) {
+            cachedData = JSON.parse(localStorage.getItem('dashboard_data') || '{}');
+        }
+
+        if (!cachedData.inquiryList) return;
+
         const filtered = cachedData.inquiryList.filter(i => {
-            const mQ = !q || i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q) || i.kind.toLowerCase().includes(q);
+            // 加入 String() 轉換以防止數字型別的 code 導致 toLowerCase() 崩潰
+            const mQ = !q ||
+                (i.name && String(i.name).toLowerCase().includes(q)) ||
+                (i.code && String(i.code).toLowerCase().includes(q)) ||
+                (i.kind && String(i.kind).toLowerCase().includes(q));
             const mC = !cat || i.kind === cat;
             return mQ && mC;
         });
@@ -156,11 +170,11 @@ function addBackfillItem() {
     div.style.position = 'relative';
     div.style.padding = '20px';
     div.style.marginBottom = '16px';
-    
+
     const policies = cachedData.userPolicies || [];
     const myCompanies = cachedData.inquiryList || [];
     const kinds = [...new Set(myCompanies.map(c => c.kind))].sort();
-    
+
     div.innerHTML = `
         <button class="remove-btn" style="position:absolute; right:10px; top:10px; background:none; border:none; font-size:1.5rem; color:#9ca3af; cursor:pointer;">&times;</button>
         <div class="form-group">
@@ -186,27 +200,27 @@ function addBackfillItem() {
             </select>
         </div>
     `;
-    
+
     const pNo = div.querySelector('.p-no');
     const pNoManual = div.querySelector('.p-no-manual');
     const pKind = div.querySelector('.p-kind');
     const pName = div.querySelector('.p-name');
-    
+
     pNo.addEventListener('change', () => {
         pNoManual.style.display = pNo.value === 'manual' ? 'block' : 'none';
     });
-    
+
     pKind.addEventListener('change', () => {
         const selectedKind = pKind.value;
         const filteredNames = myCompanies.filter(c => c.kind === selectedKind).map(c => c.name);
-        pName.innerHTML = '<option value="">請選擇名稱</option>' + 
+        pName.innerHTML = '<option value="">請選擇名稱</option>' +
             [...new Set(filteredNames)].map(n => `<option value="${n}">${n}</option>`).join('');
     });
-    
+
     div.querySelector('.remove-btn').addEventListener('click', () => {
         if (container.children.length > 1) div.remove();
     });
-    
+
     container.appendChild(div);
 }
 
@@ -215,29 +229,29 @@ document.getElementById('addMoreBtn').addEventListener('click', addBackfillItem)
 document.getElementById('submitBtn').addEventListener('click', async () => {
     const items = [];
     let valid = true;
-    
+
     document.querySelectorAll('.backfill-item').forEach(row => {
         const no = row.querySelector('.p-no').value === 'manual' ? row.querySelector('.p-no-manual').value : row.querySelector('.p-no').value;
         const kind = row.querySelector('.p-kind').value;
         const name = row.querySelector('.p-name').value;
-        
+
         // 從 cachedData 找對應的 code
         const found = cachedData.inquiryList.find(c => c.kind === kind && c.name === name);
         const code = found ? found.code : "";
-        
+
         if (!no || !kind || !name) {
             valid = false;
             return;
         }
         items.push({ no, kind, name, code });
     });
-    
+
     if (!valid || items.length === 0) return alert('請完整填寫項目');
-    
+
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.textContent = '提交中...';
-    
+
     try {
         const res = await fetch(`${API_URL}?action=submitData`, {
             method: 'POST',
@@ -261,7 +275,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 async function refreshHistory() {
     const list = document.getElementById('historyList');
     list.innerHTML = '<div style="padding:20px; text-align:center; color:#6b7280;">載入中...</div>';
-    
+
     try {
         const res = await fetch(`${API_URL}?action=getSubmitHistory&user=${currentUser}`);
         const data = await res.json();
@@ -275,7 +289,7 @@ async function refreshHistory() {
                             <div class="col-no-fixed">${h.no}</div>
                             <div class="col-kind-small" style="font-size:0.8rem; color:var(--text-muted);">${h.kind}</div>
                             <div class="col-name-fixed-his" style="font-weight:600; font-size:0.9rem;">${h.name}</div>
-                            <div class="col-time-fixed" style="color:var(--text-muted);">${h.time ? new Date(h.time).toLocaleString([], {year:'numeric', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : ''}</div>
+                            <div class="col-time-fixed" style="color:var(--text-muted);">${h.time ? new Date(h.time).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</div>
                         </div>
                     </div>
                 `).join('');
