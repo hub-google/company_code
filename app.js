@@ -299,3 +299,33 @@ async function refreshHistory() {
         list.innerHTML = '讀取失敗';
     }
 }
+
+// PWA Install Logic
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const banner = document.getElementById('installBanner');
+    if (banner) banner.style.display = 'flex';
+});
+
+if (document.getElementById('installBtn')) {
+    document.getElementById('installBtn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                const banner = document.getElementById('installBanner');
+                if (banner) banner.style.display = 'none';
+            }
+            deferredPrompt = null;
+        }
+    });
+}
+
+if (document.getElementById('closeInstallBtn')) {
+    document.getElementById('closeInstallBtn').addEventListener('click', () => {
+        const banner = document.getElementById('installBanner');
+        if (banner) banner.style.display = 'none';
+    });
+}
