@@ -275,7 +275,7 @@ async function refreshHistory() {
                             <div class="col-no-fixed">${h.no}</div>
                             <div class="col-kind-small" style="font-size:0.8rem; color:var(--text-muted);">${h.kind}</div>
                             <div class="col-name-fixed-his" style="font-weight:600; font-size:0.9rem;">${h.name}</div>
-                            <div class="col-time-fixed" style="color:var(--text-muted);">${h.time ? new Date(h.time).toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : ''}</div>
+                            <div class="col-time-fixed" style="color:var(--text-muted);">${h.time ? new Date(h.time).toLocaleString([], {year:'numeric', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : ''}</div>
                         </div>
                     </div>
                 `).join('');
