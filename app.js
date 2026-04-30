@@ -88,7 +88,7 @@ async function refreshDashboardData() {
     list.innerHTML = '<div style="padding:20px; text-align:center; color:#6b7280;">載入中...</div>';
 
     try {
-        const res = await fetch(`${API_URL}?action=getDashboardData&user=${currentUser}`);
+        const res = await fetch(`${API_URL}?action=getDashboardData&user=${currentUser}&t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
             cachedData = data;
@@ -108,7 +108,7 @@ function renderInquiryList(list) {
         return;
     }
     container.innerHTML = list.map(item => `
-        <div class="card">
+        <div class="card" onclick="copyToClipboard('${item.code}')" style="cursor:pointer;">
             <div class="card-row">
                 <div class="col-kind-fixed"><span class="item-kind">${item.kind}</span></div>
                 <div class="col-name-fixed-inq" style="font-weight:600; font-size:0.95rem;">${item.name}</div>
@@ -116,6 +116,22 @@ function renderInquiryList(list) {
             </div>
         </div>
     `).join('');
+}
+
+// 點擊複製功能
+function copyToClipboard(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(String(text)).then(() => {
+        const toast = document.createElement('div');
+        toast.textContent = '代碼已複製: ' + text;
+        toast.style = 'position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:10px 20px; border-radius:25px; z-index:9999; font-size:14px; pointer-events:none;';
+        document.body.appendChild(toast);
+        setTimeout(() => { 
+            toast.style.opacity = '0'; 
+            toast.style.transition = 'opacity 0.5s'; 
+            setTimeout(() => toast.remove(), 500); 
+        }, 1500);
+    });
 }
 
 function populateCategories(categories) {

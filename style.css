@@ -580,3 +580,6 @@ input:focus, select:focus {
 
 
 .scroll-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.custom-list-header, .card-row { min-width: 800px !important; flex-wrap: nowrap !important; }
+.scroll-container { width: 100%; overflow-x: auto !important; display: block; -webkit-overflow-scrolling: touch; }
