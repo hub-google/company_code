@@ -43,46 +43,10 @@
     <div id="dashboardPage" class="page">
         <nav class="navbar">
             <div class="nav-container">
-                <div class="nav-brand">職域經營平台</div>
+                <div class="nav-brand">職域代碼查詢系統</div>
                 <div class="nav-user-info">
                     <span id="displayUserId">ID: --------</span>
                     <button id="logoutBtn" class="btn-text">登出</button>
-                </div>
-            </div>
-
-            <!-- v4.17 橫向大項目 (根據最新表格更新) -->
-            <div class="nav-dropdown-wrapper">
-                <div class="nav-tabs-container">
-                    <div class="nav-dropdown-btn" onclick="showSubMenu('code-manage')">職域代碼與補填 ▾</div>
-                    <div class="nav-dropdown-btn" onclick="showSubMenu('sales')">職域業績 (開發中) ▾</div>
-                    <div class="nav-dropdown-btn" onclick="showSubMenu('bulletin')">布告欄 (開發中) ▾</div>
-                    <div class="nav-dropdown-btn" onclick="showSubMenu('community')">交流區 (開發中) ▾</div>
-                </div>
-            </div>
-
-            <!-- 子功能彈出區 -->
-            <div id="subMenuBox" class="dropdown-content-box">
-                <!-- 職域代碼與補填 -->
-                <div id="sub-code-manage" class="dropdown-grid" style="display:none;">
-                    <div class="dropdown-sub-item active" data-tab="inquiry">職域代碼查詢</div>
-                    <div class="dropdown-sub-item" data-tab="backfill">職域代碼補填</div>
-                    <div class="dropdown-sub-item" data-tab="history">補填紀錄查詢</div>
-                </div>
-                <!-- 職域業績 -->
-                <div id="sub-sales" class="dropdown-grid" style="display:none;">
-                    <div class="dropdown-sub-item disabled" onclick="alert('功能開發中')">職域業績查詢</div>
-                </div>
-                <!-- 布告欄 -->
-                <div id="sub-bulletin" class="dropdown-grid" style="display:none;">
-                    <div class="dropdown-sub-item disabled" onclick="alert('功能開發中')">考評標準</div>
-                    <div class="dropdown-sub-item disabled" onclick="alert('功能開發中')">經營資源</div>
-                    <div class="dropdown-sub-item disabled" onclick="alert('功能開發中')">經營活動</div>
-                </div>
-                <!-- 交流專區 -->
-                <div id="sub-community" class="dropdown-grid" style="display:none;">
-                    <div class="dropdown-sub-item disabled" onclick="alert('功能開發中')">經營心得分享</div>
-                    <div class="dropdown-sub-item disabled" onclick="alert('功能開發中')">經營人員私訊</div>
-                    <div class="dropdown-sub-item disabled" onclick="alert('功能開發中')">回饋總部意見</div>
                 </div>
             </div>
         </nav>
@@ -103,27 +67,6 @@
                 </div>
                 <div id="inquiryList"></div>
             </section>
-
-            <!-- Backfill Tab -->
-            <section id="backfillTab" class="tab-content">
-                <div class="backfill-card">
-                    <div id="backfillItemsContainer"></div>
-                    <button id="addMoreBtn" class="btn-secondary" style="width:100%; margin-bottom:20px;">+
-                        補填下一筆</button>
-                    <button id="submitBtn" class="btn-primary">確認送出補填</button>
-                </div>
-            </section>
-
-            <!-- History Tab -->
-            <section id="historyTab" class="tab-content">
-                <div class="custom-list-header">
-                    <div class="col-no-fixed">保單號碼</div>
-                    <div class="col-kind-small">類別</div>
-                    <div class="col-name-fixed-his">職域名稱</div>
-                    <div class="col-time-fixed">補填時間</div>
-                </div>
-                <div id="historyList"></div>
-            </section>
         </main>
     </div>
 
@@ -136,48 +79,12 @@
 
     <script src="app.js"></script>
     <script>
-        // 1. 顯示子選單邏輯
-        function showSubMenu(menuId) {
-            const box = document.getElementById('subMenuBox');
-            const sections = box.querySelectorAll('.dropdown-grid');
-            const btns = document.querySelectorAll('.nav-dropdown-btn');
-
-            const targetSection = document.getElementById('sub-' + menuId);
-            if (box.classList.contains('active') && targetSection.style.display === 'flex') {
-                box.classList.remove('active');
-                return;
-            }
-
-            btns.forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            sections.forEach(s => s.style.display = 'none');
-            targetSection.style.display = 'flex';
-            box.classList.add('active');
-        }
-
-        // 2. 子功能切換邏輯
-        document.querySelectorAll('.dropdown-sub-item[data-tab]').forEach(item => {
-            item.addEventListener('click', () => {
-                const tabId = item.getAttribute('data-tab');
-                document.querySelectorAll('.dropdown-sub-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                document.getElementById(tabId + 'Tab').classList.add('active');
-
-                if (tabId === 'history') refreshHistory();
-                if (tabId === 'backfill') initBackfillForm();
-            });
-        });
-
         // 初始化
         window.addEventListener('load', () => {
             const userId = localStorage.getItem('user_id');
             if (userId && document.getElementById('displayUserId')) {
                 document.getElementById('displayUserId').textContent = 'ID: ' + userId;
             }
-            showSubMenu('code-manage');
         });
     </script>
 </body>

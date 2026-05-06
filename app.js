@@ -34,24 +34,13 @@ function showDashboard() {
 }
 
 function setupTabSwitching() {
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabId = tab.dataset.tab;
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-            tab.classList.add('active');
-            document.getElementById(`${tabId}Tab`).classList.add('active');
-
-            if (tabId === 'history') refreshHistory();
-            if (tabId === 'backfill') initBackfillForm();
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.clear();
+            location.reload();
         });
-    });
-
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.clear();
-        location.reload();
-    });
+    }
 }
 
 // Login
@@ -173,148 +162,8 @@ function setupInquiryFilters() {
     filter.addEventListener('change', apply);
 }
 
-// Backfill (Dropdown Logic)
-function initBackfillForm() {
-    const container = document.getElementById('backfillItemsContainer');
-    if (container.children.length === 0) addBackfillItem();
-}
-
-function addBackfillItem() {
-    const container = document.getElementById('backfillItemsContainer');
-    const div = document.createElement('div');
-    div.className = 'card backfill-item';
-    div.style.position = 'relative';
-    div.style.padding = '20px';
-    div.style.marginBottom = '16px';
-
-    const policies = cachedData.userPolicies || [];
-    const myCompanies = cachedData.inquiryList || [];
-    const kinds = [...new Set(myCompanies.map(c => c.kind))].sort();
-
-    div.innerHTML = `
-        <button class="remove-btn" style="position:absolute; right:10px; top:10px; background:none; border:none; font-size:1.5rem; color:#9ca3af; cursor:pointer;">&times;</button>
-        <div class="form-group">
-            <label>保單號碼</label>
-            <select class="p-no">
-                <option value="">請選擇保單號碼</option>
-                ${policies.map(p => `<option value="${p}">${p}</option>`).join('')}
-                <option value="manual">-- 手動輸入 --</option>
-            </select>
-            <input type="text" class="p-no-manual" placeholder="請手動輸入保單號碼" style="display:none; margin-top:8px;">
-        </div>
-        <div class="form-group">
-            <label>職域類別</label>
-            <select class="p-kind">
-                <option value="">請選擇類別</option>
-                ${kinds.map(k => `<option value="${k}">${k}</option>`).join('')}
-            </select>
-        </div>
-        <div class="form-group">
-            <label>職域名稱</label>
-            <select class="p-name">
-                <option value="">請先選擇類別</option>
-            </select>
-        </div>
-    `;
-
-    const pNo = div.querySelector('.p-no');
-    const pNoManual = div.querySelector('.p-no-manual');
-    const pKind = div.querySelector('.p-kind');
-    const pName = div.querySelector('.p-name');
-
-    pNo.addEventListener('change', () => {
-        pNoManual.style.display = pNo.value === 'manual' ? 'block' : 'none';
-    });
-
-    pKind.addEventListener('change', () => {
-        const selectedKind = pKind.value;
-        const filteredNames = myCompanies.filter(c => c.kind === selectedKind).map(c => c.name);
-        pName.innerHTML = '<option value="">請選擇名稱</option>' +
-            [...new Set(filteredNames)].map(n => `<option value="${n}">${n}</option>`).join('');
-    });
-
-    div.querySelector('.remove-btn').addEventListener('click', () => {
-        if (container.children.length > 1) div.remove();
-    });
-
-    container.appendChild(div);
-}
-
-document.getElementById('addMoreBtn').addEventListener('click', addBackfillItem);
-
-document.getElementById('submitBtn').addEventListener('click', async () => {
-    const items = [];
-    let valid = true;
-
-    document.querySelectorAll('.backfill-item').forEach(row => {
-        const no = row.querySelector('.p-no').value === 'manual' ? row.querySelector('.p-no-manual').value : row.querySelector('.p-no').value;
-        const kind = row.querySelector('.p-kind').value;
-        const name = row.querySelector('.p-name').value;
-
-        // 從 cachedData 找對應的 code
-        const found = cachedData.inquiryList.find(c => c.kind === kind && c.name === name);
-        const code = found ? found.code : "";
-
-        if (!no || !kind || !name) {
-            valid = false;
-            return;
-        }
-        items.push({ no, kind, name, code });
-    });
-
-    if (!valid || items.length === 0) return alert('請完整填寫項目');
-
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '提交中...';
-
-    try {
-        const res = await fetch(`${API_URL}?action=submitData`, {
-            method: 'POST',
-            body: JSON.stringify({ user: currentUser, items })
-        });
-        const data = await res.json();
-        if (data.success) {
-            alert('提交成功！');
-            document.getElementById('backfillItemsContainer').innerHTML = '';
-            addBackfillItem();
-        }
-    } catch (err) {
-        alert('提交失敗');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '確認送出補填';
-    }
-});
-
-// History
-async function refreshHistory() {
-    const list = document.getElementById('historyList');
-    list.innerHTML = '<div style="padding:20px; text-align:center; color:#6b7280;">載入中...</div>';
-
-    try {
-        const res = await fetch(`${API_URL}?action=getSubmitHistory&user=${currentUser}`);
-        const data = await res.json();
-        if (data.success) {
-            if (data.history.length === 0) {
-                list.innerHTML = '<div style="padding:40px; text-align:center; color:#6b7280;">尚無補填紀錄</div>';
-            } else {
-                list.innerHTML = data.history.map(h => `
-                    <div class="card">
-                        <div class="card-row">
-                            <div class="col-no-fixed">${h.no}</div>
-                            <div class="col-kind-small" style="font-size:0.8rem; color:var(--text-muted);">${h.kind}</div>
-                            <div class="col-name-fixed-his" style="font-weight:600; font-size:0.9rem;">${h.name}</div>
-                            <div class="col-time-fixed" style="color:var(--text-muted);">${h.time ? new Date(h.time).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-    } catch (err) {
-        list.innerHTML = '讀取失敗';
-    }
-}
+// Backfill and History features are disabled for this simplified version.
+// If you need them back, refer to the original app.js or 'index copy.html'.
 
 // PWA Install Logic
 let deferredPrompt;
